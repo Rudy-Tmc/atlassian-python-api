@@ -311,15 +311,6 @@ class Jira(AtlassianRestAPI):
         """
         return [_ for _ in self.get_cluster_all_nodes() if _["alive"]]
 
-    def request_current_index_from_node(self, node_id):
-        """
-        Request current index from node (the request is processed asynchronously)
-        :return:
-        """
-        base_url = self.resource_url("cluster/index-snapshot")
-        url = "{base_url}/{node_id}".format(base_url=base_url, node_id=node_id)
-        return self.put(url)
-
     """
     Troubleshooting. (Available for DC) It gives the posibility to download support zips.
     Reference: https://confluence.atlassian.com/support/create-a-support-zip-using-the-rest-api-in-data-center-applications-952054641.html
@@ -4374,3 +4365,47 @@ api-group-workflows/#api-rest-api-2-workflow-search-get)
             # check as support tools
             response = self.get("rest/supportHealthCheck/1.0/check/")
         return response
+
+    def get_customfield_option(self, id):
+        return self.get(f"/rest/api/3/customFieldOption/{id}")
+    
+    def get_customfield_options(self, fieldId, contextId=None):
+        if contextId:
+            url = f"/rest/api/3/field/{fieldId}/context/{contextId}/option"
+        else:
+            url = f"/rest/api/3/field/{fieldId}/option"
+        return self.get(url)
+
+    def create_customfield_options(self, fieldId, contextId, options):
+        data ={}
+        optionList = []
+        for option in options:
+            optionList.append( { "disabled": False, "value": option})
+        data = {
+            "options": optionList 
+        }
+        return self.post(f"/rest/api/3/field/{fieldId}/context/{contextId}/option", data=data)
+
+    def update_customfield_options(self, fieldId, contextId, data):
+        return self.put(f"/rest/api/3/field/{fieldId}/context/{contextId}/option", data=data)
+
+    def reorder_customfield_options(self, fieldId, contextId, customFieldOptionIds, after=None, position=None):
+        data = {}
+        if after:
+            data = {
+                "after": after,
+                "customFieldOptionIds": customFieldOptionIds
+            }
+        if position:
+            data = {
+                "position": position,
+                "customFieldOptionIds": customFieldOptionIds
+            }
+        
+        return self.put(f"/rest/api/3/field/{fieldId}/context/{contextId}/option/move", data=data)
+
+    def delete_customfield_options(self, fieldId, contextId, optionId):
+        return self.delete(f"/rest/api/3/field/{fieldId}/context/{contextId}/option/{optionId}")
+
+    def get_customfield_contexts(self, fieldId):
+        return self.get(f"/rest/api/3/field/{fieldId}/context")
