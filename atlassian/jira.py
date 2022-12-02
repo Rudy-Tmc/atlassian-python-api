@@ -4366,16 +4366,7 @@ api-group-workflows/#api-rest-api-2-workflow-search-get)
             response = self.get("rest/supportHealthCheck/1.0/check/")
         return response
 
-    def get_customfield_option(self, id):
-        """
-        Returns a custom field option.
-        Get customfield option: /rest/api/3/customFieldOption/{id}
-
-        :param id: The ID of the custom field option.
-        """
-        return self.get(f"/rest/api/3/customFieldOption/{id}")
-    
-    def get_customfield_options(self, fieldId, contextId=None, optionId=None, onlyOptions=False, startAt=0, maxResults=100):
+    def get_custom_field_options(self, fieldId, contextId=None, optionId=None, onlyOptions=False, startAt=0, maxResults=100):
         """
         Returns a paginated list of all custom field option for a context. 
         Options are returned first then cascading options, in the order they display in Jira.
@@ -4399,7 +4390,7 @@ api-group-workflows/#api-rest-api-2-workflow-search-get)
             url = f"/rest/api/3/field/{fieldId}/option?{oi}onlyOptions={onlyOptions}&startAt={startAt}&maxResults={maxResults}"
         return self.get(url)
 
-    def create_customfield_options(self, fieldId, contextId, data):
+    def create_custom_field_options(self, fieldId, contextId, data):
         """
         Creates options and, where the custom select field is of the type Select List (cascading), 
         cascading options for a custom select field. The options are added to a context of the field.
@@ -4413,7 +4404,7 @@ api-group-workflows/#api-rest-api-2-workflow-search-get)
         """
         return self.post(f"/rest/api/3/field/{fieldId}/context/{contextId}/option", data=data)
     
-    def create_customfield_options_from_list(self, fieldId, contextId, options):
+    def create_custom_field_options_from_list(self, fieldId, contextId, options):
         """
         Creates options from a list and enables all new options
         
@@ -4430,9 +4421,9 @@ api-group-workflows/#api-rest-api-2-workflow-search-get)
         data = {
             "options": optionList 
         }
-        return self.create_customfield_options(fieldId, contextId, data)
+        return self.create_custom_field_options(fieldId, contextId, data)
 
-    def update_customfield_options(self, fieldId, contextId, data):
+    def update_custom_field_options(self, fieldId, contextId, data):
         """
         Updates the options of a custom field.
 
@@ -4448,7 +4439,7 @@ api-group-workflows/#api-rest-api-2-workflow-search-get)
         """
         return self.put(f"/rest/api/3/field/{fieldId}/context/{contextId}/option", data=data)
 
-    def reorder_customfield_options(self, fieldId, contextId, customFieldOptionIds, after=None, position=None):
+    def reorder_custom_field_options(self, fieldId, contextId, customFieldOptionIds, after=None, position=None):
         """
         Changes the order of custom field options or cascading options in a context.
 
@@ -4476,7 +4467,7 @@ api-group-workflows/#api-rest-api-2-workflow-search-get)
         
         return self.put(f"/rest/api/3/field/{fieldId}/context/{contextId}/option/move", data=data)
 
-    def delete_customfield_options(self, fieldId, contextId, optionId):
+    def delete_custom_field_options(self, fieldId, contextId, optionId):
         """
         Deletes a custom field option.
 
@@ -4490,5 +4481,97 @@ api-group-workflows/#api-rest-api-2-workflow-search-get)
         """
         return self.delete(f"/rest/api/3/field/{fieldId}/context/{contextId}/option/{optionId}")
 
-    def get_customfield_contexts(self, fieldId):
-        return self.get(f"/rest/api/3/field/{fieldId}/context")
+    def get_custom_field_contexts(self, fieldId, isAnyIssueType=None, isGlobalContext=None, contextId=None, startAt=0, maxResults=50):
+        """
+        Returns a paginated list of contexts for a custom field. Contexts can be returned as follows:
+        - With no other parameters set, all contexts.
+        - By defining id only, all contexts from the list of IDs.
+        - By defining isAnyIssueType, limit the list of contexts returned to either those that apply to all issue types (true) or those that apply to only a subset of issue types (false)
+        - By defining isGlobalContext, limit the list of contexts return to either those that apply to all projects (global contexts) (true) or those that apply to only a subset of projects (false).
+        
+        :param fieldId: The ID of the custom field.
+        :param isAnyIssueType: Whether to return contexts that apply to all issue types.
+        :param isGlobalContext: Whether to return contexts that apply to all projects.
+        :param contextId: The list of context IDs. To include multiple contexts, separate IDs with ampersand: contextId=10000&contextId=10001.
+        :param startAt: The index of the first item to return in a page of results (page offset).
+        :param maxResults: The maximum number of items to return per page.
+        
+        return json
+        """
+        url = f"/rest/api/3/field/{fieldId}/context?startAt={startAt}&maxResults={maxResults}"
+        if isAnyIssueType != None:
+            url = f"{url}&isAnyIssueType={isAnyIssueType}"
+        if isGlobalContext != None:
+            url = f"{url}&isGlobalContext={isGlobalContext}"
+        if contextId:
+            url = f"{url}&contextId={contextId}"
+        return self.get(url)
+    
+    def get_custom_field_contexts_from_list(self, fieldId, isAnyIssueType=None, isGlobalContext=None, contextIdList=None, startAt=0, maxResults=50):
+        """
+        Returns a paginated list of contexts for a custom field. Contexts can be returned as follows:
+        - With no other parameters set, all contexts.
+        - By defining id only, all contexts from the list of IDs.
+        - By defining isAnyIssueType, limit the list of contexts returned to either those that apply to all issue types (true) or those that apply to only a subset of issue types (false)
+        - By defining isGlobalContext, limit the list of contexts return to either those that apply to all projects (global contexts) (true) or those that apply to only a subset of projects (false).
+        
+        :param fieldId: The ID of the custom field.
+        :param isAnyIssueType: Whether to return contexts that apply to all issue types.
+        :param isGlobalContext: Whether to return contexts that apply to all projects.
+        :param contextIdList: The list of context IDs. 
+        :param startAt: The index of the first item to return in a page of results (page offset).
+        :param maxResults: The maximum number of items to return per page.
+        
+        return json
+        """
+        for contextId in contextIdList:
+            url = f"{url}&contextId={contextId}"
+
+        return self.get_custom_field_contexts_from_list(fieldId, isAnyIssueType, isGlobalContext, contextIdList, startAt, maxResults)
+
+    def create_custom_field_context(self, fieldId, name, description=None, projectIds=None, issueTypeIds=None):
+        """
+        Creates a custom field context.
+        If projectIds is empty, a global context is created. A global context is one that applies to all project. If issueTypeIds is empty, the context applies to all issue types
+            POST /rest/api/3/field/{fieldId}/context
+
+        :param fieldId: The ID of the custom field.
+        :param name: The name of the context.
+        :param description: The description of the context.
+        :param projectIds: The list of project IDs associated with the context. If the list is empty, the context is global.
+        :param issueTypeIds: The list of issue types IDs for the context. If the list is empty, the context refers to all issue types.            
+        
+        return json
+        """    
+        if projectIds = None:
+            projectIds = []
+        if issueTypeIds = None:
+            issueTypeIds = []
+        data = {
+            "issueTypeIds": issueTypeIds,
+            "name": name,
+            "description": description,
+            "projectIds": projectIds
+        }
+        
+        return self.post(f"/rest/api/3/field/{fieldId}/context", data=data)
+    
+    def get_custom_field_contexts_default_values(self, fieldId, contextId=None, startAt=0, maxResults=50):
+    """
+    Returns a paginated list of defaults for a custom field. 
+    The results can be filtered by contextId, otherwise all values are returned. 
+    If no defaults are set for a context, nothing is returned.
+        GET /rest/api/3/field/{fieldId}/context/defaultValue
+
+    param: fieldId: The ID of the custom field, for example customfield\_10000.
+    param: contextId: The IDs of the contexts.
+    param: startAt: The index of the first item to return in a page of results (page offset).
+    param: maxResults: The maximum number of items to return per page.
+    
+    returns json
+    """    
+    url = f"/rest/api/3/field/{fieldId}/context/defaultValue?startAt={startAt}&maxResults={maxResults}"
+    
+    if contextId:
+        url = f"{url}&contextId={contextId}"
+    return self.get(url)
