@@ -4367,16 +4367,62 @@ api-group-workflows/#api-rest-api-2-workflow-search-get)
         return response
 
     def get_customfield_option(self, id):
+        """
+        Returns a custom field option.
+        Get customfield option: /rest/api/3/customFieldOption/{id}
+
+        :param id: The ID of the custom field option.
+        """
         return self.get(f"/rest/api/3/customFieldOption/{id}")
     
-    def get_customfield_options(self, fieldId, contextId=None):
+    def get_customfield_options(self, fieldId, contextId=None, optionId=None, onlyOptions=False, startAt=0, maxResults=100):
+        """
+        Returns a paginated list of all custom field option for a context. 
+        Options are returned first then cascading options, in the order they display in Jira.
+            Get /rest/api/3/field/{fieldId}/context/{contextId}/option
+        
+        :param fieldId: The ID of the custom field. (e.g. customfield_10010)
+        :param contextId: The ID of the context.
+        :param optionId: The ID of the option.
+        :param onlyOptions: Whether only options are returned.
+        :param startAt: The index of the first item to return in a page of results (page offset).
+        :param maxResults: The maximum number of items to return per page.
+
+        Returns: json
+        """
+        oi = ""
+        if optionId:
+            oi = f"optionId={optionId}&"
         if contextId:
-            url = f"/rest/api/3/field/{fieldId}/context/{contextId}/option"
+            url = f"/rest/api/3/field/{fieldId}/context/{contextId}/option?{oi}onlyOptions={onlyOptions}&startAt={startAt}&maxResults={maxResults}"
         else:
-            url = f"/rest/api/3/field/{fieldId}/option"
+            url = f"/rest/api/3/field/{fieldId}/option?{oi}onlyOptions={onlyOptions}&startAt={startAt}&maxResults={maxResults}"
         return self.get(url)
 
-    def create_customfield_options(self, fieldId, contextId, options):
+    def create_customfield_options(self, fieldId, contextId, data):
+        """
+        Creates options and, where the custom select field is of the type Select List (cascading), 
+        cascading options for a custom select field. The options are added to a context of the field.
+            Post /rest/api/3/field/{fieldId}/context/{contextId}/option
+        
+        :param fieldId: The ID of the custom field.
+        :param contextId: The ID of the context.
+        :param data: Details of options to create.
+        
+        Returns: json
+        """
+        return self.post(f"/rest/api/3/field/{fieldId}/context/{contextId}/option", data=data)
+    
+    def create_customfield_options_from_list(self, fieldId, contextId, options):
+        """
+        Creates options from a list and enables all new options
+        
+        :param fieldId: The ID of the custom field.
+        :param contextId: The ID of the context.
+        :param options: a list with option values
+        
+        Returns: json
+        """
         data ={}
         optionList = []
         for option in options:
@@ -4384,12 +4430,38 @@ api-group-workflows/#api-rest-api-2-workflow-search-get)
         data = {
             "options": optionList 
         }
-        return self.post(f"/rest/api/3/field/{fieldId}/context/{contextId}/option", data=data)
+        return self.create_customfield_options(fieldId, contextId, data)
 
     def update_customfield_options(self, fieldId, contextId, data):
+        """
+        Updates the options of a custom field.
+
+        If any of the options are not found, no options are updated. 
+        Options where the values in the request match the current values 
+        aren't updated and aren't reported in the response.
+        
+        :param fieldId: The ID of the custom field.
+        :param contextId: The ID of the context.
+        :param data: Details of the options to update.
+        
+        returns json
+        """
         return self.put(f"/rest/api/3/field/{fieldId}/context/{contextId}/option", data=data)
 
     def reorder_customfield_options(self, fieldId, contextId, customFieldOptionIds, after=None, position=None):
+        """
+        Changes the order of custom field options or cascading options in a context.
+
+        This operation works for custom field options created in Jira or the operations from this resource. 
+        
+        :param fieldId: The ID of the custom field.
+        :param contextId: The ID of the context.
+        :param customFieldOptionIds: A list of IDs of custom field options to move. The order of the custom field option IDs in the list is the order they are given after the move. The list must contain custom field options or cascading options, but not both.
+        :param after: The ID of the custom field option or cascading option to place the moved options after. Required if position isn't provided.
+        :param position: The position the custom field options should be moved to. Required if after isn't provided. Valid values: First, Last
+        
+        returns json
+        """
         data = {}
         if after:
             data = {
@@ -4405,6 +4477,17 @@ api-group-workflows/#api-rest-api-2-workflow-search-get)
         return self.put(f"/rest/api/3/field/{fieldId}/context/{contextId}/option/move", data=data)
 
     def delete_customfield_options(self, fieldId, contextId, optionId):
+        """
+        Deletes a custom field option.
+
+        Options with cascading options cannot be deleted without deleting the cascading options first.
+        
+        :param fieldId: The ID of the custom field.
+        :param contextId: The ID of the context.
+        :param optionId: The ID of the option to delete.
+        
+        returns json
+        """
         return self.delete(f"/rest/api/3/field/{fieldId}/context/{contextId}/option/{optionId}")
 
     def get_customfield_contexts(self, fieldId):
