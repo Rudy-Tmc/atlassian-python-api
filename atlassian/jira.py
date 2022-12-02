@@ -4557,21 +4557,55 @@ api-group-workflows/#api-rest-api-2-workflow-search-get)
         return self.post(f"/rest/api/3/field/{fieldId}/context", data=data)
     
     def get_custom_field_contexts_default_values(self, fieldId, contextId=None, startAt=0, maxResults=50):
-    """
-    Returns a paginated list of defaults for a custom field. 
-    The results can be filtered by contextId, otherwise all values are returned. 
-    If no defaults are set for a context, nothing is returned.
-        GET /rest/api/3/field/{fieldId}/context/defaultValue
+        """
+        Returns a paginated list of defaults for a custom field. 
+        The results can be filtered by contextId, otherwise all values are returned. 
+        If no defaults are set for a context, nothing is returned.
+            GET /rest/api/3/field/{fieldId}/context/defaultValue
 
-    param: fieldId: The ID of the custom field, for example customfield\_10000.
-    param: contextId: The IDs of the contexts.
-    param: startAt: The index of the first item to return in a page of results (page offset).
-    param: maxResults: The maximum number of items to return per page.
-    
-    returns json
-    """    
-    url = f"/rest/api/3/field/{fieldId}/context/defaultValue?startAt={startAt}&maxResults={maxResults}"
-    
-    if contextId:
-        url = f"{url}&contextId={contextId}"
-    return self.get(url)
+        param: fieldId: The ID of the custom field, for example customfield\_10000.
+        param: contextId: The IDs of the contexts.
+        param: startAt: The index of the first item to return in a page of results (page offset).
+        param: maxResults: The maximum number of items to return per page.
+        
+        returns json
+        """    
+        url = f"/rest/api/3/field/{fieldId}/context/defaultValue?startAt={startAt}&maxResults={maxResults}"
+        
+        if contextId:
+            url = f"{url}&contextId={contextId}"
+        return self.get(url)
+
+    def set_custom_field_contexts_default_values(self, fieldId, defaultValues=None):
+        """
+        Sets default for contexts of a custom field.
+            PUT /rest/api/3/field/{fieldId}/context/defaultValue
+
+        param: fieldId: The ID of the custom field, for example customfield\_10000.
+        param: defaultValues: Default values to update.
+            https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-custom-field-contexts/#api-rest-api-3-field-fieldid-context-defaultvalue-put
+        
+        returns json
+        """    
+        return self.put(f"/rest/api/3/field/{fieldId}/context/defaultValue", defaultValues)
+
+    def get_issue_types_for_custom_field_context(self, fieldId, contextId=None, startAt=0, maxResults=50):
+        """
+        Returns a paginated list of context to issue type mappings for a custom field. 
+        Mappings are returned for all contexts or a list of contexts. 
+        Mappings are ordered first by context ID and then by issue type ID.
+
+            GET /rest/api/3/field/{fieldId}/context/issuetypemapping
+
+        param: fieldId: The ID of the custom field.
+        param: contextId: The ID of the context. To include multiple contexts, provide an ampersand-separated list. For example, contextId=10001&contextId=10002.
+        param: startAt: The index of the first item to return in a page of results (page offset).
+        param: maxResults: The maximum number of items to return per page.
+        """
+        url = f"/rest/api/3/field/{fieldId}/context/issuetypemapping?startAt={startAt}&maxResults={maxResults}"
+        
+        if contextId:
+            url = f"{url}&contextId={contextId}"
+        return self.get(url)
+        
+        
